@@ -96,9 +96,11 @@ public class RouletteV2AnnieSandraTest {
     exception.expect(EmptyStoreException.class);
     client.pickRandomStudent();
   }
-    @Test
+  
+  
+  @Test
   @TestAuthor(githubId = "annieSandra")
-  public void theServerShouldCountTheNumberOfNewStudent() throws IOException, EmptyStoreException {
+  public void theServerShouldCountTheCorrectNumberOfNewStudent() throws IOException, EmptyStoreException {
     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
     //assertEquals(0, client.listStudents().size());
     List<Student> students = new ArrayList<>();
@@ -106,10 +108,41 @@ public class RouletteV2AnnieSandraTest {
     students.add(new Student("rose"));
     students.add(new Student("dongmo"));
     students.add(new Student("sandra"));
-    client.loadStudents(students);
-    //client.loadStudent("sandra");
-    //assertEquals(1, client.getNumberOfNewStudent());
+    /*int numberOfNewStudent = client.getNumberOfNewStudent(students);
+    assertEquals(4, numberOfNewStudent);
+    numberOfNewStudent = client.getNumberOfNewStudent("hugo");
+    assertEquals(4, numberOfNewStudent);*/
   }
+  
+  
+  @Test 
+  @TestAuthor(githubId = "annieSandra")
+  public void theServerShouldHaveStatus() throws IOException, EmptyStoreException{
+     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
+  }
+  
+  
+  @Test 
+  @TestAuthor(githubId = "annieSandra")
+  public void theServerShouldSendTheCorrectNumberOfCommand() throws IOException, EmptyStoreException {
+    IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
+    client.getNumberOfStudents();
+    client.loadStudent("biphaga");
+    client.pickRandomStudent();
+    /*int numberOfCommand = client.getNumberOfCommand();
+    assertEquals(4, numberOfCommand());*/
+  }
+  
+  @Test 
+  @TestAuthor(githubId = "annieSandra")
+  public void theServerShouldHaveZeroStudentAfterClearCommand() throws IOException, EmptyStoreException{
+     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
+     client.loadStudent("terri");
+     client.clearDataStore();
+     assertEquals(0, client.getNumberOfStudents());
+	
+  }
+  
 
    
 }
