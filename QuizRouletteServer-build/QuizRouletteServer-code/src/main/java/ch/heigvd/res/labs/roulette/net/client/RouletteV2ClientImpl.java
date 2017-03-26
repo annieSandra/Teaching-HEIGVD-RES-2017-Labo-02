@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 /**
  * This class implements the client side of the protocol specification (version 2).
  *
- * @author Olivier Liechti
+ * @author Olivier Liechti, annie Dongmo, Doriane Kaffo
  */
 public class RouletteV2ClientImpl extends RouletteV1ClientImpl implements IRouletteV2Client {
 
