@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * This class implements the client side of the protocol specification (version 1).
  *
- * @author Olivier Liechti
+ * @author Olivier Liechti, Annie Dongmo, Doriane Kaffo
  */
 public class RouletteV1ClientImpl implements IRouletteV1Client {
 
@@ -48,19 +48,19 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
 
    @Override
    public void disconnect() throws IOException {
-     //if we are connected we send the command BYE to server to disconnect us and we 
-      //close reader and writer instead of socket
+     /*if we are connected we send the command BYE to server to disconnect us and we 
+      close reader and writer instead of socket*/
       if (isConnect) {
          writer.printf(RouletteV1Protocol.CMD_BYE + "\n");
          writer.flush();
-        /* writer.close();
+         writer.close();
          reader.close();
-         socket.close();*/
+         socket.close();
          isConnect = false;
 
       } else//if we are not connected we throw an error 
       {
-         throw new UnsupportedOperationException("Client is not connect"); //To change body of generated methods, choose Tools | Templates.
+         throw new UnsupportedOperationException("Client is not connect"); 
       }
    }
 
@@ -78,7 +78,6 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
       if (isConnect) {
          writer.printf(RouletteV1Protocol.CMD_LOAD + "\n");
          writer.flush();
-
          LOG.log(Level.INFO, "Server : {0}", reader.readLine());
          writer.printf(fullname + "\n");
          writer.flush();
@@ -94,7 +93,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
 
    @Override
    public void loadStudents(List<Student> students) throws IOException {
-      /*if we are connected we send the comand LOAD,receive server response, send
+      /*if we are connected we send the comand LOAD,retrieve server response, send
        the student's name line by line to the server,send the command LOAD END and retrieve 
        server response*/
       if (isConnect) {
@@ -109,6 +108,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
          writer.flush();
          LOG.log(Level.INFO, "Server : {0}", reader.readLine());
       } else {
+         //if we are not connected we throw exception
          throw new UnsupportedOperationException("Client is not connected");
       }
 
@@ -124,16 +124,17 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
          writer.printf(RouletteV1Protocol.CMD_RANDOM + "\n");
          writer.flush();
          line = reader.readLine();
-         System.out.println("random sortie 2 serveur" + line);
+         LOG.log(Level.INFO, "Server : {0}", line);
+         
+         //we deserialize the response   
+         RandomCommandResponse randomResponse = JsonObjectMapper.parseJson(line, RandomCommandResponse.class);
+         
          /*if the line contains error its means that there is no student in store we can then
           throw an empty storee exception*/
-         if (line.contains("error")) {
+         if(randomResponse.getError() != null)
             throw new EmptyStoreException();
-         }
-         //we deserialize the response and get the name of the student pick for return 
-         RandomCommandResponse randomResponse = JsonObjectMapper.parseJson(line, RandomCommandResponse.class);
+         //we get the name of the student pick for return
          String name = randomResponse.getFullname();
-
          return new Student(name);
 
       }
@@ -156,7 +157,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
          return infoResponse.getNumberOfStudents();
 
       }
-
+      //if we are not connected we throw exception
       throw new UnsupportedOperationException("Client is not connectes");
    }
 
