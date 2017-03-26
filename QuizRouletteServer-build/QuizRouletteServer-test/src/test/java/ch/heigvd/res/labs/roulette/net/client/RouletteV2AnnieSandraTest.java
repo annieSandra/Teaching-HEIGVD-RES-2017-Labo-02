@@ -21,8 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author annie
+ * we add some test with method which is not defined in client class RouletteV2Impl, so we have to
+ * add them if we want to test them correctly.  
+ * 
+ * @author annie Dongmo, doriane Kaffo
  */
 @Ignore
 public class RouletteV2AnnieSandraTest {
@@ -71,13 +73,13 @@ public class RouletteV2AnnieSandraTest {
   }
 
   @Test
-  @TestAuthor(githubId = {"annieSandra", "SoftEng-HEIGVD"})
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldStillHaveZeroStudentsAtStart() throws IOException {
     assertEquals(0, roulettePair.getClient().getNumberOfStudents());
   }
 
   @Test
-  @TestAuthor(githubId = "annieSandra")
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldCountStudents() throws IOException {
     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
     assertEquals(0, client.getNumberOfStudents());
@@ -90,7 +92,7 @@ public class RouletteV2AnnieSandraTest {
   }
 
   @Test
-  @TestAuthor(githubId = "annieSandra")
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldSendAnErrorResponseWhenRandomIsCalledAndThereIsNoStudent() throws IOException, EmptyStoreException {
     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
     exception.expect(EmptyStoreException.class);
@@ -99,42 +101,42 @@ public class RouletteV2AnnieSandraTest {
   
   
   @Test
-  @TestAuthor(githubId = "annieSandra")
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldCountTheCorrectNumberOfNewStudent() throws IOException, EmptyStoreException {
     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
-    //assertEquals(0, client.listStudents().size());
     List<Student> students = new ArrayList<>();
     students.add(new Student("anne"));
     students.add(new Student("rose"));
     students.add(new Student("dongmo"));
     students.add(new Student("sandra"));
-    /*int numberOfNewStudent = client.getNumberOfNewStudent(students);
+    int numberOfNewStudent = client.getNumberOfNewStudent(students);
     assertEquals(4, numberOfNewStudent);
     numberOfNewStudent = client.getNumberOfNewStudent("hugo");
-    assertEquals(4, numberOfNewStudent);*/
+    assertEquals(1, numberOfNewStudent);
   }
   
   
   @Test 
-  @TestAuthor(githubId = "annieSandra")
-  public void theServerShouldHaveStatus() throws IOException, EmptyStoreException{
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
+  public void theServerShouldSendStatusOfCommand() throws IOException, EmptyStoreException{
      IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
+     assertEquals("success",client.getStatusCommandLoad("anne"));
   }
   
   
   @Test 
-  @TestAuthor(githubId = "annieSandra")
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldSendTheCorrectNumberOfCommand() throws IOException, EmptyStoreException {
     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
     client.getNumberOfStudents();
     client.loadStudent("biphaga");
     client.pickRandomStudent();
-    /*int numberOfCommand = client.getNumberOfCommand();
-    assertEquals(4, numberOfCommand());*/
+    int numberOfCommand = client.getNumberOfCommand();
+    assertEquals(4, numberOfCommand);
   }
   
   @Test 
-  @TestAuthor(githubId = "annieSandra")
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldHaveZeroStudentAfterClearCommand() throws IOException, EmptyStoreException{
      IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
      client.loadStudent("terri");
