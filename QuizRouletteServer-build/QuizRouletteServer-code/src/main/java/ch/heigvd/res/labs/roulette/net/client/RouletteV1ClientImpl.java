@@ -18,138 +18,165 @@ import java.util.logging.Logger;
 
 /**
  * This class implements the client side of the protocol specification (version 1).
- * 
- * @author Olivier Liechti
+ *
+ * @author Olivier Liechti, Annie Dongmo, Doriane Kaffo
  */
 public class RouletteV1ClientImpl implements IRouletteV1Client {
 
-  private static final Logger LOG = Logger.getLogger(RouletteV1ClientImpl.class.getName());
-  private static Socket socket = null;
-  private boolean isConnect = false;
-  private static BufferedReader reader;
-  private static PrintWriter writer;
-  
+   private static final Logger LOG = Logger.getLogger(RouletteV1ClientImpl.class.getName());
+   protected static Socket socket = null; //to connect on the server
+   protected boolean isConnect = false;    //to know our state with server
+   protected static BufferedReader reader; //to recover the server response
+   protected static PrintWriter writer;    //to send commands to the server
 
-  @Override
-  public void connect(String server, int port) throws IOException {
-    System.out.println("try to connect on " + server + " : " + port);
-    socket = new Socket(server,port);
-    
-    reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-    writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-    
-    String line = null;
-    if((line = reader.readLine()) != null){
-       System.out.println("random sortie 1 serveur" + line);
-       isConnect = true;
-    }
-      
-    
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
+   @Override
+   public void connect(String server, int port) throws IOException {
+      System.out.println("try to connect on " + server + " : " + port);
+      //we connect to the server on the giving port
+      socket = new Socket(server, port);
+      //initialisation of reader and writer 
+      reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+      writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 
-  @Override
-  public void disconnect() throws IOException {
-    writer.printf(RouletteV1Protocol.CMD_BYE + "\n");
-    writer.flush();
-    writer.close();
-    reader.close();
-    socket.close();
-    isConnect = false;
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public boolean isConnected() {
-     return isConnect;
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public void loadStudent(String fullname) throws IOException {
-     writer.printf(RouletteV1Protocol.CMD_LOAD + "\n");
-     writer.flush();
-
-     LOG.log(Level.INFO, "Server : {0}", reader.readLine());
-     writer.printf(fullname + "\n");
-     writer.flush();
-     writer.printf(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
-     writer.flush();
-     LOG.log(Level.INFO, "Server : {0}", reader.readLine());
-     
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public void loadStudents(List<Student> students) throws IOException {
-    
-     writer.printf(RouletteV1Protocol.CMD_LOAD + "\n");
-     writer.flush();
-     LOG.log(Level.INFO, "Server : {0}", reader.readLine());
-     for(Student student:students){
-        writer.printf(student.getFullname() + "\n");
-        writer.flush();
-     }
-     writer.printf(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
-     writer.flush();
-     LOG.log(Level.INFO, "Server : {0}", reader.readLine());
-     
-
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public Student pickRandomStudent() throws EmptyStoreException, IOException {
       String line = null;
-     writer.printf(RouletteV1Protocol.CMD_RANDOM + "\n");
-     writer.flush();
-     line = reader.readLine();
-     System.out.println("random sortie 2 serveur" + line);
-     String[] result = line.split(":");
-     if(result.length < 3)
-        throw new EmptyStoreException();
-     return new Student(result[1].substring(1, result[1].length()- 2));
+      //if we receive the first line of the server we can say that we are connected
+      if ((line = reader.readLine()) != null) {
+         System.out.println("random sortie 1 serveur" + line);
+         isConnect = true;
+      }
+   }
 
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
+   @Override
+   public void disconnect() throws IOException {
+     /*if we are connected we send the command BYE to server to disconnect us and we 
+      close reader and writer instead of socket*/
+      if (isConnect) {
+         writer.printf(RouletteV1Protocol.CMD_BYE + "\n");
+         writer.flush();
+         writer.close();
+         reader.close();
+         socket.close();
+         isConnect = false;
 
-  @Override
-  public int getNumberOfStudents() throws IOException {
-     String line;
-     writer.printf(RouletteV1Protocol.CMD_INFO + "\n");
-     writer.flush();
-     line = reader.readLine();
-     System.out.println("nombre d'etudiant sortie serveur" + line);
-     String[] result = line.split(":");
-     if(result.length < 3)
-        return 0;
-     System.out.println("nombre d'etudiant resultat split " + result[2]);
-     String numberOfStudentStr = result[2].split("}")[0];
-     System.out.println("nombre d'etudiant " + numberOfStudentStr);
-     if(numberOfStudentStr.equalsIgnoreCase("0")){
-        return 0;
-     }
-     return Integer.parseInt(numberOfStudentStr);
+      } else//if we are not connected we throw an error 
+      {
+         throw new UnsupportedOperationException("Client is not connect"); 
+      }
+   }
 
-   // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
+   @Override
+   public boolean isConnected() {
+      return isConnect;
 
-  @Override
-  public String getProtocolVersion() throws IOException {
-     
-     String line;
-     writer.printf(RouletteV1Protocol.CMD_INFO + "\n");
-     writer.flush();
-     line = reader.readLine();
-     System.out.println("version sortie serveur" + line);
-     String[] result = line.split(":");
-     System.out.println("version 1er split sortie serveur" + result[1]);
-     String result1 = result[1].split(",")[0];
-     System.out.println("version 2eme split sortie serveur" + result1);
-     return result1.substring(1,result1.length()-1);
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
+   }
 
+   @Override
+   public void loadStudent(String fullname) throws IOException {
+      /*if we are connected we send the comand LOAD to the server, retrieve server response,
+       send the name of new student we want to add, send the command LOAD END and read the 
+       answer of the server */
+      if (isConnect) {
+         writer.printf(RouletteV1Protocol.CMD_LOAD + "\n");
+         writer.flush();
+         LOG.log(Level.INFO, "Server : {0}", reader.readLine());
+         writer.printf(fullname + "\n");
+         writer.flush();
+         writer.printf(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
+         writer.flush();
+         LOG.log(Level.INFO, "Server : {0}", reader.readLine());
 
+      } else {//if we are not connected we throw an error
+         throw new UnsupportedOperationException("Client is not connected");
+      }
+
+   }
+
+   @Override
+   public void loadStudents(List<Student> students) throws IOException {
+      /*if we are connected we send the comand LOAD,retrieve server response, send
+       the student's name line by line to the server,send the command LOAD END and retrieve 
+       server response*/
+      if (isConnect) {
+         writer.printf(RouletteV1Protocol.CMD_LOAD + "\n");
+         writer.flush();
+         LOG.log(Level.INFO, "Server : {0}", reader.readLine());
+         for (Student student : students) {
+            writer.printf(student.getFullname() + "\n");
+            writer.flush();
+         }
+         writer.printf(RouletteV1Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
+         writer.flush();
+         LOG.log(Level.INFO, "Server : {0}", reader.readLine());
+      } else {
+         //if we are not connected we throw exception
+         throw new UnsupportedOperationException("Client is not connected");
+      }
+
+   }
+
+   @Override
+   public Student pickRandomStudent() throws EmptyStoreException, IOException {
+      /*if we are connected we send the command RANDOM to pick random student,retrieve server response
+       check if there is no student (error) throw empty exception otherwise deserialize the response
+       and return the pick student*/
+      if (isConnect) {
+         String line = null;
+         writer.printf(RouletteV1Protocol.CMD_RANDOM + "\n");
+         writer.flush();
+         line = reader.readLine();
+         LOG.log(Level.INFO, "Server : {0}", line);
+         
+         //we deserialize the response   
+         RandomCommandResponse randomResponse = JsonObjectMapper.parseJson(line, RandomCommandResponse.class);
+         
+         /*if the line contains error its means that there is no student in store we can then
+          throw an empty storee exception*/
+         if(randomResponse.getError() != null)
+            throw new EmptyStoreException();
+         //we get the name of the student pick for return
+         String name = randomResponse.getFullname();
+         return new Student(name);
+
+      }
+      //if we are not connected we throw and error
+      throw new UnsupportedOperationException("Client is not connect to the server");
+   }
+
+   @Override
+   public int getNumberOfStudents() throws IOException {
+      /*if we are connected we send the command INFO, deserialize the result, get the number
+       of students and return it*/
+      if (isConnect) {
+         String line;
+         writer.printf(RouletteV1Protocol.CMD_INFO + "\n");
+         writer.flush();
+         line = reader.readLine();
+         System.out.println("nombre d'etudiant sortie serveur" + line);
+         //we deserialize the server response 
+         InfoCommandResponse infoResponse = JsonObjectMapper.parseJson(line, InfoCommandResponse.class);
+         return infoResponse.getNumberOfStudents();
+
+      }
+      //if we are not connected we throw exception
+      throw new UnsupportedOperationException("Client is not connectes");
+   }
+
+   @Override
+   public String getProtocolVersion() throws IOException {
+      /*if we are connected we send command INFO, deserialize the server response, get the 
+       protocole version and return it*/
+      if (isConnect) {
+         String line;
+         writer.printf(RouletteV1Protocol.CMD_INFO + "\n");
+         writer.flush();
+         line = reader.readLine();
+         System.out.println("version sortie serveur" + line);
+         InfoCommandResponse infoResponse = JsonObjectMapper.parseJson(line, InfoCommandResponse.class);
+         return infoResponse.getProtocolVersion();
+
+      }
+      //if we are not connected we throw and error
+      throw new UnsupportedOperationException("Client is not connect");
+   }
 
 }
