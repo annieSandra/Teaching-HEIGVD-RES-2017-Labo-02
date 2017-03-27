@@ -1,11 +1,16 @@
-S
+
 package ch.heigvd.res.labs.roulette.net.client;
 
 import ch.heigvd.res.labs.roulette.data.EmptyStoreException;
 import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
 import ch.heigvd.res.labs.roulette.data.*;
 import ch.heigvd.schoolpulse.TestAuthor;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -99,36 +104,85 @@ public class RouletteV2AnnieSandraTest {
   @Test
   @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldCountTheCorrectNumberOfNewStudent() throws IOException, EmptyStoreException {
-    IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
-    List<Student> students = new ArrayList<>();
-    students.add(new Student("anne"));
-    students.add(new Student("rose"));
-    students.add(new Student("dongmo"));
-    students.add(new Student("sandra"));
-    int numberOfNewStudent = client.getNumberOfNewStudent(students);
-    assertEquals(4, numberOfNewStudent);
-    numberOfNewStudent = client.getNumberOfNewStudent("hugo");
-    assertEquals(1, numberOfNewStudent);
+    
+    Socket client = new Socket("localhost",roulettePair.getServer().getPort());
+    PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(),"UTF-8"));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(),"UTF-8"));
+    
+    reader.readLine();
+    writer.printf(RouletteV2Protocol.CMD_LOAD + "\n");
+    writer.flush();
+    reader.readLine();
+    writer.printf("anne \n");
+    writer.flush();
+    writer.printf("rose \n");
+    writer.flush();
+    writer.printf("dongmo \n");
+    writer.flush();
+    writer.printf("sandra \n");
+    writer.flush();
+    writer.printf(RouletteV2Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
+    writer.flush();
+    String line = reader.readLine();
+    writer.printf(RouletteV2Protocol.CMD_BYE + "\n");
+    writer.flush();
+    reader.readLine();
+    
+    String correct = "false";
+    if(line.contains("4")){
+       correct = "true";
+    }
+    assertEquals("true", correct);
   }
   
   
   @Test 
   @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldSendStatusOfCommand() throws IOException, EmptyStoreException{
-     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
-     assertEquals("success",client.getStatusCommandLoad("anne"));
+     Socket client = new Socket ("localhost",roulettePair.getServer().getPort());
+     PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(),"UTF-8"));
+     BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(),"UTF-8"));
+     
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_BYE + "\n");
+     writer.flush();
+     String line = reader.readLine();
+     boolean correct = false;
+     if(line.contains("success")){
+        correct = true;
+     }
+
+     assertEquals(true,correct);
   }
   
   
   @Test 
   @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldSendTheCorrectNumberOfCommand() throws IOException, EmptyStoreException {
-    IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
-    client.getNumberOfStudents();
-    client.loadStudent("biphaga");
-    client.pickRandomStudent();
-    int numberOfCommand = client.getNumberOfCommand();
-    assertEquals(4, numberOfCommand);
+    Socket client = new Socket ("localhost",roulettePair.getServer().getPort());
+     PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(),"UTF-8"));
+     BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(),"UTF-8"));
+     
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_INFO + "\n");
+     writer.flush();
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_LOAD + "\n");
+     writer.flush();
+     reader.readLine();
+     writer.printf("biphaga" + "\n");
+     writer.flush();
+     writer.printf(RouletteV2Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
+     writer.flush();
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_BYE + "\n");
+     writer.flush();
+     String line = reader.readLine();
+     boolean correct = false;
+     if(line.contains("3")){
+        correct = true;
+     }
+    assertEquals(true, correct);
   }
   
   @Test 
@@ -141,6 +195,20 @@ public class RouletteV2AnnieSandraTest {
 	
   }
   
-
-   
+  @Test
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
+  public void theServerShouldReturnTheCorrectStudentList() throws IOException, EmptyStoreException{
+     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
+     client.loadStudent("terri");
+     List<Student> students = new ArrayList<>();
+     students.add(new Student("erica"));
+     students.add(new Student ("alexandra"));
+     students.add(new Student("alehandro"));
+     client.loadStudents(students);
+     List<Student> returnStudents = client.listStudents();
+     assertEquals(students, returnStudents);
+	
+  }
+  
+    
 }
