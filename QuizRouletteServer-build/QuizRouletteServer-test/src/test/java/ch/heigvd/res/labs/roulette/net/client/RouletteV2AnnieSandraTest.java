@@ -1,15 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package ch.heigvd.res.labs.roulette.net.client;
 
 import ch.heigvd.res.labs.roulette.data.EmptyStoreException;
 import ch.heigvd.res.labs.roulette.net.protocol.RouletteV2Protocol;
 import ch.heigvd.res.labs.roulette.data.*;
 import ch.heigvd.schoolpulse.TestAuthor;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -21,8 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author annie
+ * we add some test with method which is not defined in client class RouletteV2Impl, so we have to
+ * add them if we want to test them correctly.  
+ * 
+ * @author annie Dongmo, doriane Kaffo
  */
 @Ignore
 public class RouletteV2AnnieSandraTest {
@@ -71,13 +74,13 @@ public class RouletteV2AnnieSandraTest {
   }
 
   @Test
-  @TestAuthor(githubId = {"annieSandra", "SoftEng-HEIGVD"})
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldStillHaveZeroStudentsAtStart() throws IOException {
     assertEquals(0, roulettePair.getClient().getNumberOfStudents());
   }
 
   @Test
-  @TestAuthor(githubId = "annieSandra")
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldCountStudents() throws IOException {
     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
     assertEquals(0, client.getNumberOfStudents());
@@ -90,26 +93,122 @@ public class RouletteV2AnnieSandraTest {
   }
 
   @Test
-  @TestAuthor(githubId = "annieSandra")
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldSendAnErrorResponseWhenRandomIsCalledAndThereIsNoStudent() throws IOException, EmptyStoreException {
     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
     exception.expect(EmptyStoreException.class);
     client.pickRandomStudent();
   }
-    @Test
-  @TestAuthor(githubId = "annieSandra")
-  public void theServerShouldCountTheNumberOfNewStudent() throws IOException, EmptyStoreException {
-    IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
-    //assertEquals(0, client.listStudents().size());
-    List<Student> students = new ArrayList<>();
-    students.add(new Student("anne"));
-    students.add(new Student("rose"));
-    students.add(new Student("dongmo"));
-    students.add(new Student("sandra"));
-    client.loadStudents(students);
-    //client.loadStudent("sandra");
-    //assertEquals(1, client.getNumberOfNewStudent());
+  
+  
+  @Test
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
+  public void theServerShouldCountTheCorrectNumberOfNewStudent() throws IOException, EmptyStoreException {
+    
+    Socket client = new Socket("localhost",roulettePair.getServer().getPort());
+    PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(),"UTF-8"));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(),"UTF-8"));
+    
+    reader.readLine();
+    writer.printf(RouletteV2Protocol.CMD_LOAD + "\n");
+    writer.flush();
+    reader.readLine();
+    writer.printf("anne \n");
+    writer.flush();
+    writer.printf("rose \n");
+    writer.flush();
+    writer.printf("dongmo \n");
+    writer.flush();
+    writer.printf("sandra \n");
+    writer.flush();
+    writer.printf(RouletteV2Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
+    writer.flush();
+    String line = reader.readLine();
+    writer.printf(RouletteV2Protocol.CMD_BYE + "\n");
+    writer.flush();
+    reader.readLine();
+    
+    String correct = "false";
+    if(line.contains("4")){
+       correct = "true";
+    }
+    assertEquals("true", correct);
   }
+  
+  
+  @Test 
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
+  public void theServerShouldSendStatusOfCommand() throws IOException, EmptyStoreException{
+     Socket client = new Socket ("localhost",roulettePair.getServer().getPort());
+     PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(),"UTF-8"));
+     BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(),"UTF-8"));
+     
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_BYE + "\n");
+     writer.flush();
+     String line = reader.readLine();
+     boolean correct = false;
+     if(line.contains("success")){
+        correct = true;
+     }
 
-   
+     assertEquals(true,correct);
+  }
+  
+  
+  @Test 
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
+  public void theServerShouldSendTheCorrectNumberOfCommand() throws IOException, EmptyStoreException {
+    Socket client = new Socket ("localhost",roulettePair.getServer().getPort());
+     PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(),"UTF-8"));
+     BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(),"UTF-8"));
+     
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_INFO + "\n");
+     writer.flush();
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_LOAD + "\n");
+     writer.flush();
+     reader.readLine();
+     writer.printf("biphaga" + "\n");
+     writer.flush();
+     writer.printf(RouletteV2Protocol.CMD_LOAD_ENDOFDATA_MARKER + "\n");
+     writer.flush();
+     reader.readLine();
+     writer.printf(RouletteV2Protocol.CMD_BYE + "\n");
+     writer.flush();
+     String line = reader.readLine();
+     boolean correct = false;
+     if(line.contains("3")){
+        correct = true;
+     }
+    assertEquals(true, correct);
+  }
+  
+  @Test 
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
+  public void theServerShouldHaveZeroStudentAfterClearCommand() throws IOException, EmptyStoreException{
+     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
+     client.loadStudent("terri");
+     client.clearDataStore();
+     assertEquals(0, client.getNumberOfStudents());
+	
+  }
+  
+  @Test
+  @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
+  public void theServerShouldReturnTheCorrectStudentList() throws IOException, EmptyStoreException{
+     IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
+     client.loadStudent("terri");
+     List<Student> students = new ArrayList<>();
+     students.add(new Student("erica"));
+     students.add(new Student ("alexandra"));
+     students.add(new Student("alehandro"));
+     client.loadStudents(students);
+     List<Student> returnStudents = client.listStudents();
+     assertEquals(students, returnStudents);
+	
+  }
+  
+    
 }
