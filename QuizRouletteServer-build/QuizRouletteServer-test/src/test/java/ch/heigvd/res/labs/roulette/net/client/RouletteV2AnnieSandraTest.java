@@ -199,7 +199,7 @@ public class RouletteV2AnnieSandraTest {
   @TestAuthor(githubId = {"annieSandra", "dorianeKaffo"})
   public void theServerShouldReturnTheCorrectStudentList() throws IOException, EmptyStoreException{
      IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
-     client.loadStudent("terri");
+     client.clearDataStore();
      List<Student> students = new ArrayList<>();
      students.add(new Student("erica"));
      students.add(new Student ("alexandra"));
