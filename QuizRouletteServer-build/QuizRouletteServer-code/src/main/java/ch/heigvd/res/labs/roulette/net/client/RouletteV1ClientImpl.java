@@ -60,7 +60,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
 
       } else//if we are not connected we throw an error 
       {
-         throw new UnsupportedOperationException("Client is not connect"); 
+         return; 
       }
    }
 

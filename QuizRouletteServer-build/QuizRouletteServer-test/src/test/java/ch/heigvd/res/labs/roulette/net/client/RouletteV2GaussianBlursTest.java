@@ -36,6 +36,7 @@ public class RouletteV2GaussianBlursTest {
     }
 
     @Test
+    @Ignore
     @TestAuthor(githubId = "gaussianblurs")
     public void theServerShouldListenToTheCorrectPort() {
         RouletteServer server = new RouletteServer(RouletteV2Protocol.DEFAULT_PORT, RouletteV2Protocol.VERSION);
