@@ -41,8 +41,8 @@ public class RouletteV2ClientHandler implements IClientHandler {
 
   @Override
   public void handleClientConnection(InputStream is, OutputStream os) throws IOException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-    PrintWriter writer = new PrintWriter(new OutputStreamWriter(os));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+    PrintWriter writer = new PrintWriter(new OutputStreamWriter(os,"UTF-8"));
 
     writer.println("Hello. Online HELP is available. Will you find it?");
     writer.flush();
