@@ -35,8 +35,7 @@ public class RouletteV2ClientHandler implements IClientHandler {
 
 
   public RouletteV2ClientHandler(IStudentsStore store) {
-     this.store = store;
-    //throw new UnsupportedOperationException("Not supported yet."); //To change body of gen  
+     this.store = store;  
   }
 
   @Override
@@ -131,7 +130,6 @@ public class RouletteV2ClientHandler implements IClientHandler {
     }
 
 
-// throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
 }

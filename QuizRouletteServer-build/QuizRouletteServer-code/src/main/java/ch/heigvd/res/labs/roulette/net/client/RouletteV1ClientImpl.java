@@ -31,25 +31,29 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
 
    @Override
    public void connect(String server, int port) throws IOException {
-      System.out.println("try to connect on " + server + " : " + port);
-      //we connect to the server on the giving port
-      socket = new Socket(server, port);
-      //initialisation of reader and writer 
-      reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-      writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+      //if the client is not connected we create the socket and connect it on the 
+      //correct server and port
+      if (!isConnect) {
+         System.out.println("try to connect on " + server + " : " + port);
+         //we connect to the server on the giving port
+         socket = new Socket(server, port);
+         //initialisation of reader and writer 
+         reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+         writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 
-      String line = null;
-      //if we receive the first line of the server we can say that we are connected
-      if ((line = reader.readLine()) != null) {
-         System.out.println("random sortie 1 serveur" + line);
-         isConnect = true;
+         String line = null;
+         //if we receive the first line of the server we can say that we are connected
+         if ((line = reader.readLine()) != null) {
+            System.out.println("random sortie 1 serveur" + line);
+            isConnect = true;
+         }
       }
    }
 
    @Override
    public void disconnect() throws IOException {
-     /*if we are connected we send the command BYE to server to disconnect us and we 
-      close reader and writer instead of socket*/
+      /*if we are connected we send the command BYE to server to disconnect us and we 
+       close reader and writer instead of socket*/
       if (isConnect) {
          writer.printf(RouletteV1Protocol.CMD_BYE + "\n");
          writer.flush();
@@ -58,10 +62,7 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
          socket.close();
          isConnect = false;
 
-      } else//if we are not connected we throw an error 
-      {
-         return; 
-      }
+      } 
    }
 
    @Override
@@ -125,14 +126,15 @@ public class RouletteV1ClientImpl implements IRouletteV1Client {
          writer.flush();
          line = reader.readLine();
          LOG.log(Level.INFO, "Server : {0}", line);
-         
+
          //we deserialize the response   
          RandomCommandResponse randomResponse = JsonObjectMapper.parseJson(line, RandomCommandResponse.class);
-         
+
          /*if the line contains error its means that there is no student in store we can then
           throw an empty storee exception*/
-         if(randomResponse.getError() != null)
+         if (randomResponse.getError() != null) {
             throw new EmptyStoreException();
+         }
          //we get the name of the student pick for return
          String name = randomResponse.getFullname();
          return new Student(name);
