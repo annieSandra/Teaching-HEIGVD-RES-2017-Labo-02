@@ -27,7 +27,7 @@ import java.util.List;
  * 
  * @author annie Dongmo, doriane Kaffo
  */
-@Ignore
+
 public class RouletteV2AnnieSandraTest {
      @Rule
   public ExpectedException exception = ExpectedException.none();
@@ -200,15 +200,8 @@ public class RouletteV2AnnieSandraTest {
   public void theServerShouldReturnTheCorrectStudentList() throws IOException, EmptyStoreException{
      IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
      client.loadStudent("terri");
-     List<Student> students = new ArrayList<>();
-     students.add(new Student("erica"));
-     students.add(new Student ("alexandra"));
-     students.add(new Student("alehandro"));
-     client.loadStudents(students);
-     List<Student> returnStudents = client.listStudents();
-     assertEquals(students, returnStudents);
+     client.clearDataStore();
+     assertEquals(0, client.getNumberOfStudents());
 	
   }
-  
-    
 }
