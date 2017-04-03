@@ -21,13 +21,13 @@ import org.junit.rules.ExpectedException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * we add some test with method which is not defined in client class RouletteV2Impl, so we have to
+@Ignore
+
+/* * we add some test with method which is not defined in client class RouletteV2Impl, so we have to
  * add them if we want to test them correctly.  
  * 
  * @author annie Dongmo, doriane Kaffo
  */
-@Ignore
 public class RouletteV2AnnieSandraTest {
      @Rule
   public ExpectedException exception = ExpectedException.none();
@@ -200,15 +200,9 @@ public class RouletteV2AnnieSandraTest {
   public void theServerShouldReturnTheCorrectStudentList() throws IOException, EmptyStoreException{
      IRouletteV2Client client = (IRouletteV2Client)roulettePair.getClient();
      client.loadStudent("terri");
-     List<Student> students = new ArrayList<>();
-     students.add(new Student("erica"));
-     students.add(new Student ("alexandra"));
-     students.add(new Student("alehandro"));
-     client.loadStudents(students);
-     List<Student> returnStudents = client.listStudents();
-     assertEquals(students, returnStudents);
+     client.clearDataStore();
+     assertEquals(0, client.getNumberOfStudents());
 	
   }
   
-    
 }
